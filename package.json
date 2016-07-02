@@ -1,0 +1,20 @@
+{
+    "name": "changing-tags",
+    "title": "Changing tags",
+    "description": "Change matching xml/html tag when one tag is changed",
+    "keywords": ["html", "xml", "tag", "automaticaly", "replace"],
+    "homepage": "https://github.com/roicos/brackets-changing-tags",
+    "version": "1.0.0",
+    "author": "Ekaterina Dontsova <ekatarina.dontsova@gmail.com> (https://github.com/roicos)",
+    "engines": {
+        "brackets": ">=0.42.0"
+    },
+    "i18n": [ "en", "ru"],
+    "package-i18n": {
+        "ru": {
+            "title": "Автозамена тегов",
+            "description": "Автоматическая замена парного html/xml тега при изменении одного",
+            "keywords": ["html", "xml", "тег", "автоматическая", "замена"]
+        }
+    }
+}

@@ -30,6 +30,9 @@ define(function (require, exports, module) {
     
     function documentChangeHandler() {
         console.log("document change");
+        if (matchingTag === null) {
+            return;
+        }
         var cursorPos = editor.getCursorPos();
         var editedTagInfo = HTMLUtils.getTagInfo(editor, cursorPos);
         if (editedTagInfo.tagName) {
@@ -61,8 +64,10 @@ define(function (require, exports, module) {
                 }
                 var mt = codeMirror.findMatchingTag(cm, cursorPos);
                 if (!isSingleTag(mt)) {  // both tags equal
-                    matchingTag = mt;
-                    previousTagName = editedTagInfo.tagName;
+                   // matchingTag = mt;
+                   //    previousTagName = editedTagInfo.tagName;
+                    matchingTag = null;
+                    previousTagName = null;
                     console.log("2 change");
                     return;
                 }
@@ -73,8 +78,8 @@ define(function (require, exports, module) {
         }
     }
     
-    function cursorActivityHandler() {
-        console.log("cursor activity");
+    function keydownHandler() {
+        console.log("keydown");
         var cursorPos = editor.getCursorPos();
         var tagInfo = HTMLUtils.getTagInfo(editor, cursorPos);
         if (tagInfo.tagName) {
@@ -92,20 +97,24 @@ define(function (require, exports, module) {
     }
     
     function switchFileHandler() {
+        if (document !== undefined && document !== null) {
+            document.releaseRef();
+        }
         var filePath = mainViewManager.getCurrentlyViewedPath();
         editor = editorManager.getActiveEditor();
         document = editor.document;
         cm = editor._codeMirror;
         if (liveDevelopmentUtils.isStaticHtmlFileExt(filePath)) {
             // TODO: check mixed html/php
-            editor.on("cursorActivity", cursorActivityHandler);
+            editor.on("keydown", keydownHandler);
             document.on("change", documentChangeHandler);
+            document.addRef();
+            document.on("delete", function () {
+                document.releaseRef();
+            });
         }
     }
     
     mainViewManager.on("currentFileChange", switchFileHandler);
              
-           // IMPORTANT: If you listen for the "change" event, you MUST also addRef() 
-           // the document (and releaseRef() it whenever you stop listening). 
-           // You should also listen to the "deleted" event.
 });

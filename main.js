@@ -16,7 +16,8 @@ define(function (require, exports, module) {
         editor,
         document,
         matchingTag,
-        previousTagName;
+        previousTagName,
+        marker;
 
     
     function isSingleTag(tag) {
@@ -87,6 +88,29 @@ define(function (require, exports, module) {
         return replaceRange;
     }
     
+    function highlightPairTag(mt) {
+        console.log("highlight");
+        var highlightFrom,
+            highlightTo;
+        if (mt.at === "open") {
+            highlightFrom = mt.close.from;
+            highlightTo = mt.close.to;
+        } else {
+            highlightFrom = mt.open.from;
+            highlightTo = mt.open.to;
+        }
+        marker = cm.getDoc().markText(highlightFrom, highlightTo, {className: "CodeMirror-matchingtag"});
+        console.log(marker);
+    }
+    
+    function clearHighlightMarker() {
+        console.log(marker);
+        if (marker !== null && marker !== undefined) {
+            marker.clear();
+            marker = null;
+        }
+    }
+    
     function changePairTag(currentTag, cursorPos) {
         if (matchingTag === null) {
             return;
@@ -94,6 +118,7 @@ define(function (require, exports, module) {
         if (nameChanged(currentTag)) {
             var mt = codeMirror.findMatchingTag(cm, cursorPos);
             if (!isSingleTag(mt)) {  // both tags equal
+                highlightPairTag(mt);
                 resetCurrentTag();
                 return;
             }
@@ -103,6 +128,7 @@ define(function (require, exports, module) {
     }
     
     function documentChangeHandler() {
+        console.log("document change");
         var cursorPos = editor.getCursorPos();
         var currentTag = HTMLUtils.getTagInfo(editor, cursorPos);
         if (cursorOnTag(cursorPos)) {
@@ -111,6 +137,7 @@ define(function (require, exports, module) {
     }
     
     function keydownHandler() {
+        console.log("keydown");
         var cursorPos = editor.getCursorPos();
         if (cursorOnTag(cursorPos)) {
             trackCurrentTag(cursorPos);
@@ -127,6 +154,7 @@ define(function (require, exports, module) {
     
     function attachHandlers() {
         editor.on("keydown", keydownHandler);
+        editor.on("cursorActivity", clearHighlightMarker);
         document.on("change", documentChangeHandler);
         document.addRef();
         document.on("delete", function () {

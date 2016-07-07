@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function calculateReplaceRange(currentTag) {
+    function calculateReplaceRange(currentTag, cursorPos) {
         var replaceFrom,
             replaceTo,
             replaceRange = {
@@ -59,18 +59,22 @@ define(function (require, exports, module) {
                 to: null
             };
         if (matchingTag.at === 'open') {
-            var closeTagShift = 0;
+            var chShift = 0,
+                lineShift = cursorPos.line - matchingTag.open.from.line;
             // open and closed tags on the same line
             if (matchingTag.open.from.line === matchingTag.close.from.line) {
-                closeTagShift = currentTag.tagName.length - previousTagName.length;
+                chShift = currentTag.tagName.length - previousTagName.length;
+                if (lineShift !== 0) { // split tag name with "enter"
+                    chShift = 1;
+                }
             }
             replaceFrom =  {
-                ch: matchingTag.close.from.ch + 2 + closeTagShift,
-                line: matchingTag.close.from.line
+                ch: matchingTag.close.from.ch + 2 + chShift,
+                line: matchingTag.close.from.line + lineShift
             };
             replaceTo = {
-                ch: matchingTag.close.from.ch + 2 + closeTagShift + matchingTag.close.tag.length,
-                line: matchingTag.close.from.line
+                ch: matchingTag.close.from.ch + 2 + chShift + matchingTag.close.tag.length,
+                line: matchingTag.close.to.line + lineShift
             };
         } else {
             replaceFrom =  {
@@ -84,12 +88,10 @@ define(function (require, exports, module) {
         }
         replaceRange.from = replaceFrom;
         replaceRange.to = replaceTo;
-        
         return replaceRange;
     }
     
     function highlightPairTag(mt) {
-        console.log("highlight");
         var highlightFrom,
             highlightTo;
         if (mt.at === "open") {
@@ -100,11 +102,9 @@ define(function (require, exports, module) {
             highlightTo = mt.open.to;
         }
         marker = cm.getDoc().markText(highlightFrom, highlightTo, {className: "CodeMirror-matchingtag"});
-        console.log(marker);
     }
     
     function clearHighlightMarker() {
-        console.log(marker);
         if (marker !== null && marker !== undefined) {
             marker.clear();
             marker = null;
@@ -122,13 +122,13 @@ define(function (require, exports, module) {
                 resetCurrentTag();
                 return;
             }
-            var replaceRange = calculateReplaceRange(currentTag);
+            var replaceRange = calculateReplaceRange(currentTag, cursorPos);
             editor.document.replaceRange(currentTag.tagName, replaceRange.from, replaceRange.to);
         }
     }
     
     function documentChangeHandler() {
-        console.log("document change");
+        // console.log("document change");
         var cursorPos = editor.getCursorPos();
         var currentTag = HTMLUtils.getTagInfo(editor, cursorPos);
         if (cursorOnTag(cursorPos)) {
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
     }
     
     function keydownHandler() {
-        console.log("keydown");
+        // console.log("keydown");
         var cursorPos = editor.getCursorPos();
         if (cursorOnTag(cursorPos)) {
             trackCurrentTag(cursorPos);

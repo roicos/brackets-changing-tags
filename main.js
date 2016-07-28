@@ -112,6 +112,7 @@ define(function (require, exports, module) {
     }
     
     function changePairTag(currentTag, cursorPos) {
+        // TODO: error when css code is mixed with html
         if (matchingTag === null) {
             return;
         }
@@ -128,7 +129,6 @@ define(function (require, exports, module) {
     }
     
     function documentChangeHandler() {
-        // console.log("document change");
         var cursorPos = editor.getCursorPos();
         var currentTag = HTMLUtils.getTagInfo(editor, cursorPos);
         if (cursorOnTag(cursorPos)) {
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
     }
     
     function keydownHandler() {
-        // console.log("keydown");
+        // TODO: tag may be undefined if we erase all characters;
         var cursorPos = editor.getCursorPos();
         if (cursorOnTag(cursorPos)) {
             trackCurrentTag(cursorPos);
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function setGlobalVariables() {
+    function refreshEdidor() {
         editor = editorManager.getActiveEditor();
         document = editor.document;
         cm = editor._codeMirror;
@@ -157,23 +157,41 @@ define(function (require, exports, module) {
         editor.on("cursorActivity", clearHighlightMarker);
         document.on("change", documentChangeHandler);
         document.addRef();
-        document.on("delete", function () {
-            document.releaseRef();
-        });
     }
     
-    function switchFileHandler() {
-        if (document !== undefined && document !== null) {
-            document.releaseRef();
+    function detachHandlers() {
+        editor.off("keydown", keydownHandler);
+        editor.off("cursorActivity", clearHighlightMarker);
+        document.off("change", documentChangeHandler);
+        document.releaseRef();
+    }
+    
+    function switchFileHandler(e, newFile, newPaneId, oldFile, oldPaneId) {
+        if (oldFile !== null &&     liveDevelopmentUtils.isStaticHtmlFileExt(oldFile.fullPath)) {
+            detachHandlers();
         }
-        setGlobalVariables();
-        var filePath = mainViewManager.getCurrentlyViewedPath();
-        if (liveDevelopmentUtils.isStaticHtmlFileExt(filePath)) {
-            // TODO: check mixed html/php
+        refreshEdidor();
+        if (liveDevelopmentUtils.isStaticHtmlFileExt(newFile.fullPath)) {
             attachHandlers();
         }
     }
     
+    function addFileHandler(e, file){
+        refreshEdidor();
+        if (liveDevelopmentUtils.isStaticHtmlFileExt(file.fullPath)) {
+            attachHandlers();
+        }
+    } 
+    
+    function removeFileHandler(e, file){
+        if (liveDevelopmentUtils.isStaticHtmlFileExt(file.fullPath)) {
+            detachHandlers();
+        }
+        refreshEdidor();
+    }
+    
+    mainViewManager.on("workingSetAdd", addFileHandler);
+    mainViewManager.on("workingSetRemove", removeFileHandler);
     mainViewManager.on("currentFileChange", switchFileHandler);
              
 });

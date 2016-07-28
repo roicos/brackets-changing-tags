@@ -4,7 +4,7 @@
     "description": "Change matching xml/html tag when one tag is changed",
     "keywords": ["html", "xml", "tag", "automaticaly", "replace"],
     "homepage": "https://github.com/roicos/brackets-changing-tags",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Ekaterina Dontsova <ekatarina.dontsova@gmail.com> (https://github.com/roicos)",
     "engines": {
         "brackets": ">=0.42.0"

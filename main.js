@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     
     function cursorOnTag(cursorPos) {
         var tagInfo = HTMLUtils.getTagInfo(editor, cursorPos);
-        return tagInfo.tagName;
+        console.log(tagInfo.tagName.match(/^([a-z0-9]+)$/i));
+        return tagInfo.tagName && tagInfo.tagName.match(/^([a-z0-9]+)$/i);
     }
     
     function resetCurrentTag() {
@@ -137,7 +138,6 @@ define(function (require, exports, module) {
     }
     
     function keydownHandler() {
-        // TODO: tag may be undefined if we erase all characters;
         var cursorPos = editor.getCursorPos();
         if (cursorOnTag(cursorPos)) {
             trackCurrentTag(cursorPos);

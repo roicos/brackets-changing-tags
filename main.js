@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     
     function cursorOnTag(cursorPos) {
         var tagInfo = HTMLUtils.getTagInfo(editor, cursorPos);
-        console.log(tagInfo.tagName.match(/^([a-z0-9]+)$/i));
         return tagInfo.tagName && tagInfo.tagName.match(/^([a-z0-9]+)$/i);
     }
     
@@ -148,8 +147,8 @@ define(function (require, exports, module) {
     
     function refreshEdidor() {
         editor = editorManager.getActiveEditor();
-        document = editor.document;
-        cm = editor._codeMirror;
+        document = editor !== null ? editor.document : null;
+        cm = editor !== null ? editor._codeMirror : null;
     }
     
     function attachHandlers() {
@@ -171,7 +170,7 @@ define(function (require, exports, module) {
             detachHandlers();
         }
         refreshEdidor();
-        if (liveDevelopmentUtils.isStaticHtmlFileExt(newFile.fullPath)) {
+        if (newFile !== null && liveDevelopmentUtils.isStaticHtmlFileExt(newFile.fullPath)) {
             attachHandlers();
         }
     }
